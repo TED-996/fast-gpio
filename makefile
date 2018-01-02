@@ -6,15 +6,15 @@ SRCDIR := src
 INCDIR := include
 BUILDDIR := build
 BINDIR := bin
-TARGET := $(BINDIR)/fast-gpio
+TARGET := $(BINDIR)/fast-rgb
  
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CXXFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
-DEVICE_TYPE := "UNKNOWN"
-override CXXFLAGS += -D 'DEVICE_TYPE="$(DEVICE_TYPE)"'
+DEVICE_TYPE := "ramips"
+override CXXFLAGS += -DDEVICE_TYPE='$(DEVICE_TYPE)'
 
 INC := $(shell find $(INCDIR) -maxdepth 1 -type d -exec echo -I {}  \;)
 
