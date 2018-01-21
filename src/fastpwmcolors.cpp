@@ -67,10 +67,10 @@ void FastPwmColors::_SetupDuties(int pin1, int duty1, int pin2, int duty2, int p
 	this->pin2 = pin2;
 	this->pin3 = pin3;
 
-	this->hi1 = this->period * duty1 / 100;
-	this->hi2 = this->period * (duty2 - duty1) / 100;
-	this->hi3 = this->period * (duty3 - duty2) / 100;
-	this->low = this->period * (100 - duty3) / 100;
+	this->hi1 = this->period * duty1 / 1024;
+	this->hi2 = this->period * (duty2 - duty1) / 1024;
+	this->hi3 = this->period * (duty3 - duty2) / 1024;
+	this->low = this->period * (1024 - duty3) / 1024;
 
 	/*if (verbosityLevel > 0) {
 		printf ( 	"PWMColor Setup: frequency = %d, duty1 = %d%%, duty2 = %d%%, duty2 = %d%%\n"

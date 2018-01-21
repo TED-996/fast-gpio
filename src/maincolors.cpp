@@ -126,5 +126,5 @@ void processRequest(FastPwmColors& colors, char* request){
 	int g = fromHex(request + 2);
 	int b = fromHex(request + 4);
 
-	colors.SetupRgb(r * 100 / 255, g * 100 / 255, b * 100 / 255);
+	colors.SetupRgb(r * 1024 / 255, g * 1024 / 255, b * 1024 / 255);
 }
