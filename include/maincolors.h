@@ -6,7 +6,12 @@
 #include <cstring>
 #include <poll.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
 
 #include <iostream>
 #include <fstream>
@@ -39,12 +44,13 @@ struct colorSetup {
 	int blueDuty;
 
 	int cmdFd;
+	
 
 	colorSetup(){
 		freq = 200;
-		pinR = 11;
+		pinR = 3;
 		pinG = 2;
-		pinB = 3;
+		pinB = 11;
 
 		redDuty = 0;
 		greenDuty = 0;

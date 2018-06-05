@@ -11,6 +11,7 @@
 
 #define DEFAULT_FREQ				200
 #define DEFAULT_DUTY_CYCLE			50
+#define US_PER_SEC					1000000
 
 
 class FastPwmColors : public Module {
@@ -35,6 +36,7 @@ private:
 	void 	_Sleep 			(double length);
 
 	void 	_PwmCycle		(double lengthMultiplier);
+	void 	_PwmCycleFull	();
 
 	FastGpio * gpio;
 
@@ -45,13 +47,13 @@ private:
 	int pin1;
 	int pin2;
 	int pin3;
-	double hi1;
-	double hi2;
-	double hi3;
-	double low;
+	uint32_t hi1;
+	uint32_t hi2;
+	uint32_t hi3;
+	uint32_t low;
 
 	int		freq;
-	double period;
+	uint32_t period;
 };
 
 

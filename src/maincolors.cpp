@@ -3,16 +3,96 @@
 
 int pwmRun(colorSetup* setup);
 void usage(char* progname);
+void parseArguments(int argc, char* argv[], colorSetup* setup);
 
 int main(int argc, char* argv[])
 {
 	colorSetup setup;
 
 	// TODO parse arguments
+	parseArguments(argc, argv, &setup); 
 
 	int status = pwmRun(&setup);
 
 	return status;
+}
+
+
+int open2WayFifo(char* path);
+
+void parseArguments(int argc, char* argv[], colorSetup* setup){
+	char* fifo = NULL;
+	for (int i = 1; i < argc; i++){
+		if (strcmp(argv[i], "--fifo") == 0){
+			if (i != argc - 1){
+				fifo = argv[i + 1];
+				i++;
+			}
+			else{
+				fprintf(stderr, "Argument error: --fifo value missing.\n");
+				usage(argv[0]);
+				exit(1);
+			}
+		}
+		else{
+			fprintf(stderr, "Argument error: unrecognized argument %s", argv[i]);
+		}
+	}
+
+	if (fifo != NULL){
+		setup->cmdFd = open2WayFifo(fifo);
+	}
+}
+
+int closeFd = -1;
+void shutdownSignal(int signal){
+	close(closeFd);
+}
+
+int open2WayFifo(char* path){
+	if (mkfifo(path, 0666) != 0 && errno != EEXIST){
+		fprintf(stderr, "Can not create FIFO %s. Errno %d\n", path);
+		exit(1);
+	}
+
+	int readFd = open(path, O_RDONLY | O_NONBLOCK);
+	if (readFd == -1){
+		fprintf(stderr, "Can not open FIFO %s for reading. Errno %d\n", path, errno);
+		exit(1);
+	}
+	int writeFd = open(path, O_WRONLY);
+	if (writeFd == -1){
+		fprintf(stderr, "Can not open FIFO %s for writing. Errno %d\n", path, errno);
+		close(readFd);
+
+		exit(1);
+	}
+
+	int readFlags = fcntl(readFd, F_GETFL);
+	if (fcntl(readFd, F_SETFL, readFlags & ~O_NONBLOCK) != 0){
+		fprintf(stderr, "Can not reset read FIFO O_NONBLOCK flag. Errno %d\n", path, errno);
+		close(readFd);
+		close(writeFd);
+
+		exit(1);
+	}
+
+	closeFd = writeFd;
+
+	if (signal(SIGUSR1, shutdownSignal) == SIG_ERR){
+		fprintf(stderr, "Can not register SIGUSR1 signal. Errno %d\n", path, errno);
+		close(readFd);
+		close(writeFd);
+
+		exit(1);
+	}
+
+	return readFd;
+}
+
+void usage(char* progname){
+	printf("Usage:\n");
+	printf("%s [--fifo <fifo_name>]\n", progname);
 }
 
 int cleanupWhitespace(char* buffer, int size);

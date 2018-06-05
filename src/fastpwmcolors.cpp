@@ -23,13 +23,11 @@ FastPwmColors::FastPwmColors(int freq, int pinR, int pinG, int pinB)
 	gpio->SetDirection(pinB, 1);
 }
 
-FastPwmColors::~FastPwmColors(void)
-{
+FastPwmColors::~FastPwmColors(void) {
 	// nothing for now
 }
 
-void FastPwmColors::Reset(void)
-{
+void FastPwmColors::Reset(void) {
 	// nothing for now
 }
 
@@ -40,8 +38,8 @@ void FastPwmColors::SetupRgb(int redDuty, int greenDuty, int blueDuty){
 void FastPwmColors::_SetupFreq(int frequency){
 	this->freq 		= frequency;
 
-	// find the period (in ms)
-	this->period 		= (1.0f/freq) * 1000;
+	// find the period (in us)
+	this->period 	= (US_PER_SEC/freq)
 }
 
 
@@ -81,13 +79,11 @@ void FastPwmColors::_SetupDuties(int pin1, int duty1, int pin2, int duty2, int p
 	}*/
 }
 
-double correctionMultiplier = 1.0;
-
-void FastPwmColors::Run (double timeMs)
+void FastPwmColors::Run (uint32_t timeUs)
 {
 	// TODO: adjust the correctionMultiplier based on pre+post times
 	while(timeMs > period){
-		_PwmCycle(correctionMultiplier);
+		_PwmCycleFull();
 		timeMs -= period;
 	}
 	if (timeMs > 0.001){
@@ -97,6 +93,10 @@ void FastPwmColors::Run (double timeMs)
 
 void FastPwmColors::_PwmCycle (double lengthMultiplier)
 {
+	// pin1 stays HIGH the least; pin2 avg and pin3 the most
+
+
+
 	// All HIGH part of cycle
 	gpio->Set(pin1, 1);
 	gpio->Set(pin2, 1);
@@ -111,18 +111,43 @@ void FastPwmColors::_PwmCycle (double lengthMultiplier)
 	gpio->Set(pin2, 0);
 	_Sleep(lengthMultiplier * hi3);
 
-	// LOW part
-	gpio->Set(pin3, 0);
-	_Sleep(low);
+	if (low != 0){
+		// LOW part
+		gpio->Set(pin3, 0);
+		_Sleep(low);
+	}
 }
 
-inline void FastPwmColors::_Sleep (double length)
+void FastPwmColors::_PwmCycleFull ()
 {
-	if (length < 0.0001){
+	// pin1 stays HIGH the least; pin2 avg and pin3 the most
+
+	// All HIGH part of cycle
+	gpio->Set(pin1, 1);
+	gpio->Set(pin2, 1);
+	gpio->Set(pin3, 1);
+	_Sleep(hi1);
+
+	// 2 + 3 HIGH part
+	gpio->Set(pin1, 0);
+	_Sleep(hi2);
+	
+	// 3 HIGH part
+	gpio->Set(pin2, 0);
+	_Sleep(hi3);
+
+	if (low != 0){
+		// LOW part
+		gpio->Set(pin3, 0);
+		_Sleep(low);
+	}
+}
+
+inline void FastPwmColors::_Sleep (uint32_t lengthUs)
+{
+	if (length == 0){
 		return;
 	}
-	// sleep function uses microseconds
-	int value	= (int)(length * 1000);	
 
-	usleep(value);
+	usleep(lengthUs);
 }
