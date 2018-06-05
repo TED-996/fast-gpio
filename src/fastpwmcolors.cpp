@@ -72,7 +72,7 @@ void FastPwmColors::Run(uint32_t timeUs) {
     timeMs -= period;
   }
   if (timeMs > 0.001) {
-    _PwmCycle(timeMs / period * correctionMultiplier);
+    _PwmCycle(timeMs / period);
   }
 }
 
