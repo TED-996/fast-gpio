@@ -1,23 +1,24 @@
 #include <maincolors.h>
 
-int pwmRun(colorSetup* setup);
+int pwmRun(int cmdFd);
 void usage(char* progname);
-void parseArguments(int argc, char* argv[], colorSetup* setup);
+void parseArguments(int argc, char* argv[], int* cmdFd);
 
 int main(int argc, char* argv[]) {
-  colorSetup setup;
+  int cmdFd = 0;
 
-  // TODO parse arguments
-  parseArguments(argc, argv, &setup);
+  parseArguments(argc, argv, &cmdFd);
 
-  int status = pwmRun(&setup);
+  int status = pwmRun(cmdFd);
+
+  close(cmdFd);
 
   return status;
 }
 
 int open2WayFifo(char* path);
 
-void parseArguments(int argc, char* argv[], colorSetup* setup) {
+void parseArguments(int argc, char* argv[], int* cmdFd) {
   char* fifo = NULL;
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--fifo") == 0) {
@@ -35,7 +36,10 @@ void parseArguments(int argc, char* argv[], colorSetup* setup) {
   }
 
   if (fifo != NULL) {
-    setup->cmdFd = open2WayFifo(fifo);
+    *cmdFd = open2WayFifo(fifo);
+  }
+  else{
+    *cmdFd = 0; // STDIN
   }
 }
 
@@ -97,11 +101,9 @@ int cleanupWhitespace(char* buffer, int size);
 void processRequest(FastPwmColors& colors, char* request);
 
 // function to run pwm commands
-int pwmRun(colorSetup* setup) {
-  FastPwmColors pwmObj(setup->freq, setup->pinR, setup->pinG, setup->pinB);
-  pwmObj.SetupRgb(setup->redDuty, setup->greenDuty, setup->blueDuty);
+int pwmRun(int cmdFd) {
+  FastPwmColors pwmObj;
 
-  int cmdFd = setup->cmdFd;
   pollfd pfd;
   pfd.fd = cmdFd;
   pfd.events = POLLIN;
@@ -111,7 +113,7 @@ int pwmRun(colorSetup* setup) {
   memset(request, 0, sizeof(request));
   int requestBytes = 0;
 
-  double targetLoop = pwmObj.getPeriod();
+  uint32_t targetLoop = PERIOD_US * (FREQ / INPUT_FREQ);
 
   while (true) {
     pwmObj.Run(targetLoop);
@@ -198,5 +200,5 @@ void processRequest(FastPwmColors& colors, char* request) {
   int g = fromHex(request + 2);
   int b = fromHex(request + 4);
 
-  colors.SetupRgb(r * 1024 / 255, g * 1024 / 255, b * 1024 / 255);
+  colors.SetupRgb(r, g, b);
 }

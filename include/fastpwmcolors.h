@@ -10,50 +10,31 @@
 #define DEFAULT_FREQ 200
 #define DEFAULT_DUTY_CYCLE 50
 #define US_PER_SEC 1000000
+#define FREQ 200
+#define INPUT_FREQ 100
+#define PERIOD_US (US_PER_SEC / FREQ)
+#define PIN_R 3
+#define PIN_G 2
+#define PIN_B 11
 
-class FastPwmColors : public Module {
+class FastPwmColors {
  public:
-  FastPwmColors(void);
-  FastPwmColors(int freq, int pinR, int pinG, int pinB);
-  ~FastPwmColors(void);
-
+  FastPwmColors();
   void Reset(void);
 
   void SetupRgb(int redDuty, int greenDuty, int blueDuty);
-  void Run(double timeMs);
-
-  double getPeriod() { return period; }
+  void Run(uint32_t timeUs);
 
  private:
-  // private functions
-  void _SetupFreq(int frequency);
-  void _SetupDuties(int pin1,
-                    int duty1,
-                    int pin2,
-                    int duty2,
-                    int pin3,
-                    int duty3);
-  void _Sleep(double length);
+  void _SetupDuties(int dutyR, int dutyG, int dutyB);
+  void _Sleep(uint32_t lengthUs);
 
   void _PwmCycle(double lengthMultiplier);
   void _PwmCycleFull();
 
   FastGpioOmega2 gpio;
 
-  int pinR;
-  int pinG;
-  int pinB;
-
-  int pin1;
-  int pin2;
-  int pin3;
-  uint32_t hi1;
-  uint32_t hi2;
-  uint32_t hi3;
-  uint32_t low;
-
-  int freq;
-  uint32_t period;
+  uint32_t cycle[4][4];
 };
 
 #endif  // _FAST_PWM_H_

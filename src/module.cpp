@@ -20,8 +20,8 @@ int Module::_SetupAddress(unsigned long int blockBaseAddr,
 }
 
 void Module::_WriteReg(unsigned long int registerOffset,
-                       unsigned long int value) *
-    (regAddress + registerOffset) = value;
+                       unsigned long int value) {
+    *(regAddress + registerOffset) = value;
 }
 
 unsigned long int Module::_ReadReg(unsigned long int registerOffset) {
